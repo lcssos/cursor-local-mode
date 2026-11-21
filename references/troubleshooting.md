@@ -42,6 +42,13 @@ unpatched builds the request still goes to the cloud and fails.
 - `expected exactly one 'localMode:!1', found 0`: already patched, or the bundle does
   not contain that literal. Run `grep -abo 'localMode' <bundle>` and inspect the
   surrounding bytes; the flag is minified and may change shape between versions.
+- The script patches five candidate files. If a build adds or renames one, the file is
+  reported as "not in this build" and skipped — check that the desktop workbench, the
+  Agents Window (`workbench.glass.main.js`) and `extensionHostProcess.js` were all
+  listed as patched or already enabled.
+- `product.json` has a `checksums` map for a handful of bundle files. The script
+  refreshes the entries it can find; a missing key is normal for `main.js` and the
+  glass bundle. Do not hand-edit these hashes.
 - App quits immediately after patching: re-run
   `codesign --force --deep --sign - <app>` and `codesign --verify --deep --strict <app>`.
   If the copy was moved, re-signing is normally unnecessary but harmless.
@@ -56,6 +63,15 @@ unpatched builds the request still goes to the cloud and fails.
 - Model IDs must exist in the gateway's `/models`. Restart the copy after changing the
   gateway catalog; the picker is cached.
 - Tool calling must work. Chat-only endpoints answer once and then the Agent stalls.
+- If only the desktop window works and the Agents Window still talks to the cloud,
+  `workbench.glass.main.js` was not patched — rebuild from the current source app.
+
+## Persisted environment
+
+`--persist` writes `~/Library/LaunchAgents/local.cursor-local.env.plist` (mode 600).
+Any process of the user can still read those variables with `launchctl getenv`, so keep
+a placeholder gateway key there rather than a key for a hosted provider. `--forget`
+unloads the job, deletes the plist, and unsets both variables.
 
 ## Updates
 

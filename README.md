@@ -21,11 +21,21 @@ curl -fsS http://127.0.0.1:3425/v1/models
 
 # 3. 启动（先改脚本顶部的 GATEWAY_BASE_URL / GATEWAY_API_KEY）
 ./scripts/launch-cursor-local.command
+
+# 可选：写 LaunchAgent，让从 Dock 启动也能带上网关地址
+./scripts/launch-cursor-local.command --persist
+# 撤销
+./scripts/launch-cursor-local.command --forget
 ```
 
 启动脚本会校验补丁、探活网关，再用 `launchctl setenv` 注入
 `CURSOR_LOCAL_AGENT_BASE_URL` / `CURSOR_LOCAL_AGENT_API_KEY` 并
 `open -na ... --disable-updates --user-data-dir=...`。
+
+补丁覆盖 5 个候选文件（桌面 workbench、Agents 窗口的 `workbench.glass.main.js`、
+扩展宿主 `extensionHostProcess.js`、`out/main.js`、`alwaysLocalSingletonMain.js`），
+并同步 `product.json` 里的 `checksums`。只补 `workbench.desktop.main.js` 会让
+Agents 窗口仍然走云端。
 
 验证：
 
@@ -58,12 +68,23 @@ Use $cursor-local-mode to point my Cursor Agent at http://127.0.0.1:3425/v1
 
 ## 官方本地版（可选）
 
-Cursor 另外发布了 `cursor-local` 渠道的构建，面向本地/离线 Agent，无需打补丁：
+Cursor 另外发布了 `cursor-local` 渠道的构建（Cursor Private Inference），Agent 循环
+本身跑在本机，读取同样的环境变量，无需打补丁、升级不失效。用 `product.json` 的
+`nameShort` 是否为 `Cursor Private Inference` 来区分：
 
 ```
 https://api2.cursor.sh/updates/download/golden/darwin-arm64-user/cursor-local/latest
 https://api2.cursor.sh/updates/download/golden/darwin-x64-user/cursor-local/latest
 ```
+
+## 同类项目
+
+- [CometixSpace/CCursor](https://github.com/CometixSpace/CCursor)：同样翻这 5 个文件 +
+  刷新 checksums，带备份与 install/uninstall，另有 ConnectRPC 层的 BYOK 服务；AGPL-3.0。
+- [lidge-jun/opencodex](https://github.com/lidge-jun/opencodex)：不打补丁，文档把限制
+  写得很清楚（每回合约 23k token 系统提示词、Tab/Composer/Cloud Agents 不可用）。
+- [yetone/magpie](https://github.com/yetone/magpie)：检测官方本地版并用
+  `launchctl`/注册表/`environment.d` 持久注入环境变量，不写 Cursor 任何文件。
 
 ## License
 
