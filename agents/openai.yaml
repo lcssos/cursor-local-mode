@@ -1,0 +1,6 @@
+interface:
+  display_name: "Cursor Local Mode"
+  short_description: "Point Cursor Agent at a local OpenAI gateway"
+  default_prompt: "Use $cursor-local-mode to point my Cursor Agent at a local OpenAI-compatible gateway."
+policy:
+  allow_implicit_invocation: true
